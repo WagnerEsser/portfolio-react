@@ -4,19 +4,15 @@ import {
   type SubmitHandler,
   type FieldErrors,
 } from "react-hook-form";
-import { Form, Input, Button, Typography, notification, List } from "antd";
+import { Form, Input, Button, notification, List } from "antd";
 import { useCallback } from "react";
+import type { User } from "../../types";
 
-const { Title } = Typography;
-
-type User = {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
+type Props = {
+  onSubmit: (user: User) => void;
 };
 
-const UserRegistrationForm = () => {
+const UserRegistrationForm = ({ onSubmit }: Props) => {
   const [api, contextHolder] = notification.useNotification();
   const {
     handleSubmit,
@@ -51,7 +47,7 @@ const UserRegistrationForm = () => {
     [api]
   );
 
-  const onSubmit: SubmitHandler<User> = (data) => {
+  const _onSubmit: SubmitHandler<User> = (data) => {
     if (data.password !== data.confirmPassword) {
       setError("confirmPassword", {
         type: "manual",
@@ -65,6 +61,7 @@ const UserRegistrationForm = () => {
     }
 
     openFormSuccessNotification();
+    onSubmit(data);
     reset();
   };
 
@@ -72,19 +69,13 @@ const UserRegistrationForm = () => {
     <div
       style={{
         maxWidth: 600,
-        margin: "50px auto",
-        padding: "20px",
-        border: "1px solid #d9d9d9",
-        borderRadius: "8px",
+        margin: "32px auto",
       }}
     >
       {contextHolder}
-      <Title level={2} style={{ textAlign: "center" }}>
-        Novo usuário
-      </Title>
 
       <Form
-        onFinish={handleSubmit(onSubmit, openFormErrorNotification)}
+        onFinish={handleSubmit(_onSubmit, openFormErrorNotification)}
         layout='vertical'
       >
         <Form.Item
