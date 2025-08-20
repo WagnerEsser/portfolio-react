@@ -1,5 +1,11 @@
-import { useForm, Controller, type SubmitHandler } from "react-hook-form";
-import { Form, Input, Button, Typography, message } from "antd";
+import {
+  useForm,
+  Controller,
+  type SubmitHandler,
+  type FieldErrors,
+} from "react-hook-form";
+import { Form, Input, Button, Typography, notification, List } from "antd";
+import { useCallback } from "react";
 
 const { Title } = Typography;
 
@@ -11,6 +17,7 @@ type User = {
 };
 
 const UserRegistrationForm = () => {
+  const [api, contextHolder] = notification.useNotification();
   const {
     handleSubmit,
     control,
@@ -19,22 +26,46 @@ const UserRegistrationForm = () => {
     setError,
   } = useForm<User>();
 
+  const openFormErrorNotification = useCallback(
+    (data: FieldErrors<User>) =>
+      api.error({
+        message: `Foram encontrados erros no formulário!`,
+        showProgress: true,
+        description: (
+          <List size='small'>
+            {Object.entries(data).map(([fieldName, value]) => (
+              <List.Item key={"err-" + fieldName}>{value.message}</List.Item>
+            ))}
+          </List>
+        ),
+      }),
+    [api]
+  );
+
+  const openFormSuccessNotification = useCallback(
+    () =>
+      api.success({
+        message: `Usuário cadastrado com sucesso!`,
+        showProgress: true,
+      }),
+    [api]
+  );
+
   const onSubmit: SubmitHandler<User> = (data) => {
     if (data.password !== data.confirmPassword) {
       setError("confirmPassword", {
         type: "manual",
         message: "As senhas não são iguais",
       });
+      openFormErrorNotification({
+        ...errors,
+        confirmPassword: { type: "value", message: "As senhas não são iguais" },
+      });
       return;
     }
 
-    console.log("Dados do formulário:", data);
-    message.success("Cadastro realizado com sucesso!");
+    openFormSuccessNotification();
     reset();
-  };
-
-  const onInvalidForm = () => {
-    message.error("Foram encontrados erros no formulário!");
   };
 
   return (
@@ -47,11 +78,15 @@ const UserRegistrationForm = () => {
         borderRadius: "8px",
       }}
     >
+      {contextHolder}
       <Title level={2} style={{ textAlign: "center" }}>
         Novo usuário
       </Title>
 
-      <Form onFinish={handleSubmit(onSubmit, onInvalidForm)} layout='vertical'>
+      <Form
+        onFinish={handleSubmit(onSubmit, openFormErrorNotification)}
+        layout='vertical'
+      >
         <Form.Item
           label='Nome de Usuário'
           validateStatus={errors.username ? "error" : ""}
