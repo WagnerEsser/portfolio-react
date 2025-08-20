@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "antd/dist/reset.css"; // reset global recommended on v5
+import "@ant-design/v5-patch-for-react-19"; // for react 19 compability
+import "antd/dist/reset.css";
 import "./base.css";
 import App from "./App";
 import ptBR from "antd/locale/pt_BR";
@@ -12,7 +13,6 @@ createRoot(document.getElementById("root")!).render(
       locale={ptBR}
       theme={{
         algorithm: theme.defaultAlgorithm,
-        token: { colorPrimary: "#7c3aed" },
       }}
     >
       <App />

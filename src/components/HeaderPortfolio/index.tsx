@@ -4,7 +4,7 @@ import wagnerPhoto from "../../assets/logo.png";
 const { Title, Text } = Typography;
 
 const HeaderPortfolio = () => (
-  <div style={{ textAlign: "center", marginTop: 24 }}>
+  <div style={{ textAlign: "center", marginTop: 12 }}>
     <Image
       width={150}
       src={wagnerPhoto}
@@ -33,7 +33,6 @@ const HeaderPortfolio = () => (
       <CodeOutlined
         style={{
           fontSize: 36,
-          marginTop: 32,
           marginBottom: 16,
           color: "#424242",
         }}
