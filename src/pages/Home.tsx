@@ -13,6 +13,7 @@ import {
 import type { MenuProps } from "antd";
 import { Menu, message } from "antd";
 import type { MessageInstance } from "antd/es/message/interface";
+import HeaderPortfolio from "../components/HeaderPortfolio";
 
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -110,6 +111,9 @@ const Home = () => {
   return (
     <div style={{ width: 1280 }}>
       {antMessageComponent}
+
+      <HeaderPortfolio />
+
       <Menu
         onClick={onClick}
         selectedKeys={[current]}
