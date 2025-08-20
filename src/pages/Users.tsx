@@ -9,7 +9,7 @@ import {
   ReloadOutlined,
   UserAddOutlined,
 } from "@ant-design/icons";
-import { getUsers } from "../services/api";
+import { deleteUser, getUsers } from "../services/api";
 
 const { Title } = Typography;
 
@@ -24,7 +24,21 @@ const Users = () => {
 
   const handleDeleteUser = () => {
     if (userToDelete) {
-      setUsers((prevUsers) => prevUsers.filter((u) => u !== userToDelete));
+      deleteUser(userToDelete.id).then((response) => {
+        if (response.status !== 200) {
+          notificationApi.error({
+            message: "Erro ao excluir o usuário",
+            description: response.data,
+            showProgress: true,
+          });
+          return;
+        }
+        notificationApi.success({
+          message: "Usuário excluído com sucesso!",
+          showProgress: true,
+        });
+        loadUsers();
+      });
       setUserToDelete(null);
       setIsDeleteModalOpen(false);
     }

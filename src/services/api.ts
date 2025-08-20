@@ -15,7 +15,7 @@ export const updateUser = (user: User) => {
 };
 
 export const deleteUser = (id: string) => {
-  const response = axios.post(import.meta.env.VITE_API_URL + "users/" + id);
+  const response = axios.delete(import.meta.env.VITE_API_URL + "users/" + id);
   return response;
 };
 
