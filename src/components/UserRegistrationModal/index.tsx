@@ -7,11 +7,12 @@ import {
 import { Form, Input, Button, notification, List, Modal } from "antd";
 import { useCallback } from "react";
 import type { User } from "../../types";
+import { createUser, updateUser } from "../../services/api";
 
 type Props = {
   isOpen: boolean;
   initialValues?: User;
-  onSubmit: (user: User) => void;
+  onSubmit: () => void;
   onClose?: () => void;
 };
 
@@ -22,7 +23,7 @@ const UserRegistrationModal = ({
   onClose,
 }: Props) => {
   const isEdit = initialValues?.id;
-  const [api, contextHolder] = notification.useNotification();
+  const [notificationApi, contextHolder] = notification.useNotification();
   const {
     handleSubmit,
     control,
@@ -33,7 +34,7 @@ const UserRegistrationModal = ({
 
   const openFormErrorNotification = useCallback(
     (data: FieldErrors<User>) =>
-      api.error({
+      notificationApi.error({
         message: `Foram encontrados erros no formulário!`,
         showProgress: true,
         description: (
@@ -44,18 +45,18 @@ const UserRegistrationModal = ({
           </List>
         ),
       }),
-    [api]
+    [notificationApi]
   );
 
   const openFormSuccessNotification = useCallback(
     () =>
-      api.success({
+      notificationApi.success({
         message: isEdit
           ? "Usuário atualizado com sucesso!"
           : `Usuário cadastrado com sucesso!`,
         showProgress: true,
       }),
-    [api, isEdit]
+    [notificationApi, isEdit]
   );
 
   const _onSubmit: SubmitHandler<User> = (data) => {
@@ -71,9 +72,39 @@ const UserRegistrationModal = ({
       return;
     }
 
-    openFormSuccessNotification();
-    onSubmit({ ...data, id: initialValues?.id || crypto.randomUUID() });
-    reset();
+    if (isEdit) {
+      const userToEdit = { ...data, id: initialValues.id };
+
+      updateUser(userToEdit).then((response) => {
+        if (response.status !== 200) {
+          notificationApi.error({
+            message: "Erro ao salvar o usuário",
+            description: response.data,
+            showProgress: true,
+          });
+          return;
+        }
+        openFormSuccessNotification();
+        onSubmit();
+        reset();
+      });
+    } else {
+      const newUser = { ...data, id: crypto.randomUUID() };
+
+      createUser(newUser).then((response) => {
+        if (response.status !== 201) {
+          notificationApi.error({
+            message: "Erro ao cadastrar usuário",
+            description: response.data,
+            showProgress: true,
+          });
+          return;
+        }
+        openFormSuccessNotification();
+        onSubmit();
+        reset();
+      });
+    }
   };
 
   return (

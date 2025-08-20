@@ -1,22 +1,26 @@
-import { Button, Typography, Table, Modal } from "antd";
-import { useState } from "react";
+import { Button, Typography, Table, Modal, notification } from "antd";
+import { useCallback, useEffect, useState } from "react";
 import type { User } from "../types";
 import UserRegistrationModal from "../components/UserRegistrationModal";
 import type { ColumnsType } from "antd/es/table";
-import { DeleteFilled, EditFilled, UserAddOutlined } from "@ant-design/icons";
+import {
+  DeleteFilled,
+  EditFilled,
+  ReloadOutlined,
+  UserAddOutlined,
+} from "@ant-design/icons";
+import { getUsers } from "../services/api";
 
 const { Title } = Typography;
 
 const Users = () => {
+  const [notificationApi, contextHolder] = notification.useNotification();
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User>();
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-
-  const handleAddUser = (user: User) => {
-    setUsers((prevUsers) => [...prevUsers, user]);
-  };
 
   const handleDeleteUser = () => {
     if (userToDelete) {
@@ -65,8 +69,34 @@ const Users = () => {
     },
   ];
 
+  const loadUsers = useCallback(() => {
+    setIsLoading(true);
+    getUsers()
+      .then((response) => {
+        const users = (response.data || []) as User[];
+        setUsers(users);
+      })
+      .catch((error) => {
+        notificationApi.error({
+          message: "Erro ao atualizar a lista de usuários!",
+          description: error,
+          showProgress: true,
+        });
+        return;
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [notificationApi]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
   return (
     <div style={{ padding: "20px" }}>
+      {contextHolder}
+
       <Button
         type='primary'
         onClick={() => {
@@ -78,12 +108,26 @@ const Users = () => {
         Novo Usuário
       </Button>
 
-      <Title level={3} style={{ marginTop: 20 }}>
+      <Title
+        level={3}
+        style={{
+          marginTop: 20,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         Lista de Usuários
+        <ReloadOutlined
+          onClick={loadUsers}
+          spin={isLoading}
+          style={{ cursor: "pointer" }}
+        />
       </Title>
 
       <Table
         dataSource={users}
+        loading={isLoading}
         columns={columns}
         rowKey={(user) => user.email}
         style={{ marginTop: 20 }}
@@ -92,14 +136,8 @@ const Users = () => {
       <UserRegistrationModal
         initialValues={userToEdit}
         isOpen={isModalOpen}
-        onSubmit={(user) => {
-          if (userToEdit) {
-            setUsers((prevUsers) =>
-              prevUsers.map((u) => (u.email === userToEdit.email ? user : u))
-            );
-          } else {
-            handleAddUser(user);
-          }
+        onSubmit={() => {
+          loadUsers();
           setIsModalOpen(false);
         }}
         onClose={() => setIsModalOpen(false)}
