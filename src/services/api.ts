@@ -1,5 +1,6 @@
-import axios, { AxiosError } from "axios";
-import session from "../stores/session";
+import axios, { AxiosError } from 'axios';
+
+import session from '../stores/session';
 
 export type RespAPI<Success> = {
   status: number;
@@ -11,7 +12,7 @@ const api = axios.create({
   headers: {},
 });
 
-api.interceptors.request.use((request) => {
+api.interceptors.request.use(request => {
   const token = session.get();
   if (token !== null) {
     request.headers.Authorization = `Bearer ${token}`;
@@ -21,7 +22,7 @@ api.interceptors.request.use((request) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  response => response,
   (error: AxiosError): RespAPI<AxiosError> => {
     // logout user when he's not authorized
     if (error.response?.status === 401) {

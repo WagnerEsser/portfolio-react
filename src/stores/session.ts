@@ -1,4 +1,4 @@
-const SESSION_KEY = "session";
+const SESSION_KEY = 'session';
 
 const session = {
   set: function (value: string) {

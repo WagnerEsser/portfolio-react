@@ -1,13 +1,10 @@
-import {
-  useForm,
-  Controller,
-  type SubmitHandler,
-  type FieldErrors,
-} from "react-hook-form";
-import { Form, Input, Button, notification, List, Modal } from "antd";
-import { useCallback } from "react";
-import type { User } from "../../types";
-import { UserService } from "../../services/users";
+import { useCallback } from 'react';
+import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
+
+import { Button, Form, Input, List, Modal, notification } from 'antd';
+
+import { UserService } from '../../services/users';
+import type { User } from '../../types';
 
 type Props = {
   isOpen: boolean;
@@ -31,9 +28,9 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
         message: `Foram encontrados erros no formulário!`,
         showProgress: true,
         description: (
-          <List size='small'>
+          <List size="small">
             {Object.entries(data).map(([fieldName, value]) => (
-              <List.Item key={"err-" + fieldName}>{value.message}</List.Item>
+              <List.Item key={'err-' + fieldName}>{value.message}</List.Item>
             ))}
           </List>
         ),
@@ -50,15 +47,15 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
     [notificationApi]
   );
 
-  const _onSubmit: SubmitHandler<User> = async (formData) => {
+  const _onSubmit: SubmitHandler<User> = async formData => {
     if (formData.password !== formData.confirmPassword) {
-      setError("confirmPassword", {
-        type: "manual",
-        message: "As senhas não são iguais",
+      setError('confirmPassword', {
+        type: 'manual',
+        message: 'As senhas não são iguais',
       });
       openErrorNotification({
         ...errors,
-        confirmPassword: { type: "value", message: "As senhas não são iguais" },
+        confirmPassword: { type: 'value', message: 'As senhas não são iguais' },
       });
       return;
     }
@@ -71,9 +68,9 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
         onSubmit();
         reset();
       })
-      .catch((error) => {
+      .catch(error => {
         notificationApi.error({
-          message: "Erro ao cadastrar usuário",
+          message: 'Erro ao cadastrar usuário',
           description: error as unknown as string,
           showProgress: true,
         });
@@ -81,97 +78,75 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
   };
 
   return (
-    <Modal
-      title={"Cadastrar Novo Usuário"}
-      open={isOpen}
-      onCancel={onClose}
-      footer={null}
-    >
-      <div style={{ maxWidth: 600, margin: "32px auto" }}>
+    <Modal title="Cadastrar Novo Usuário" open={isOpen} footer={null} onCancel={onClose}>
+      <div style={{ maxWidth: 600, margin: '32px auto' }}>
         {contextHolder}
 
-        <Form
-          onFinish={handleSubmit(_onSubmit, openErrorNotification)}
-          layout='vertical'
-        >
-          <Form.Item
-            label='Nome'
-            validateStatus={errors.name ? "error" : ""}
-            help={errors.name && errors.name.message}
-          >
+        <Form layout="vertical" onFinish={handleSubmit(_onSubmit, openErrorNotification)}>
+          <Form.Item label="Nome" validateStatus={errors.name ? 'error' : ''} help={errors.name && errors.name.message}>
             <Controller
-              name='name'
+              name="name"
               control={control}
-              rules={{ required: "Nome é obrigatório" }}
-              render={({ field }) => <Input size='large' {...field} />}
+              rules={{ required: 'Nome é obrigatório' }}
+              render={({ field }) => <Input size="large" {...field} />}
             />
           </Form.Item>
 
           <Form.Item
-            label='E-mail'
-            validateStatus={errors.email ? "error" : ""}
+            label="E-mail"
+            validateStatus={errors.email ? 'error' : ''}
             help={errors.email && errors.email.message}
           >
             <Controller
-              name='email'
+              name="email"
               control={control}
+              render={({ field }) => <Input size="large" {...field} />}
               rules={{
-                required: "E-mail é obrigatório",
+                required: 'E-mail é obrigatório',
                 pattern: {
                   value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-                  message: "Formato de e-mail inválido",
+                  message: 'Formato de e-mail inválido',
                 },
               }}
-              render={({ field }) => <Input size='large' {...field} />}
             />
           </Form.Item>
 
           <Form.Item
-            label='Senha'
-            validateStatus={errors.password ? "error" : ""}
-            help={
-              errors.password
-                ? errors.password.message
-                : "Mínimo de 6 caracteres"
-            }
+            label="Senha"
+            validateStatus={errors.password ? 'error' : ''}
+            help={errors.password ? errors.password.message : 'Mínimo de 6 caracteres'}
           >
             <Controller
-              name='password'
+              name="password"
               control={control}
+              render={({ field }) => <Input.Password size="large" {...field} />}
               rules={{
-                required: "Senha é obrigatória",
+                required: 'Senha é obrigatória',
                 minLength: {
                   value: 6,
-                  message: "A senha deve ter no mínimo 6 caracteres",
+                  message: 'A senha deve ter no mínimo 6 caracteres',
                 },
               }}
-              render={({ field }) => <Input.Password size='large' {...field} />}
             />
           </Form.Item>
 
           <Form.Item
-            label='Confirmar Senha'
-            validateStatus={errors.confirmPassword ? "error" : ""}
+            label="Confirmar Senha"
+            validateStatus={errors.confirmPassword ? 'error' : ''}
             help={errors.confirmPassword && errors.confirmPassword.message}
           >
             <Controller
-              name='confirmPassword'
+              name="confirmPassword"
               control={control}
+              render={({ field }) => <Input.Password size="large" {...field} />}
               rules={{
-                required: "Confirmação de senha é obrigatória",
+                required: 'Confirmação de senha é obrigatória',
               }}
-              render={({ field }) => <Input.Password size='large' {...field} />}
             />
           </Form.Item>
 
           <Form.Item>
-            <Button
-              type='primary'
-              htmlType='submit'
-              size='large'
-              block
-              style={{ marginTop: 16 }}
-            >
+            <Button block type="primary" htmlType="submit" size="large" style={{ marginTop: 16 }}>
               Cadastrar
             </Button>
           </Form.Item>
