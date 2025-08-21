@@ -68,7 +68,7 @@ const Users = () => {
             icon={<EditFilled />}
             onClick={() => {
               setUserToEdit(user);
-              setIsModalCreateOpen(true);
+              setIsModalEditOpen(true);
             }}
           />
           <Button
