@@ -10,6 +10,7 @@ import {
   UserAddOutlined,
 } from "@ant-design/icons";
 import { UserService } from "../services/users";
+import UserEditModal from "../components/UserEditModal";
 
 const { Title } = Typography;
 
@@ -17,8 +18,9 @@ const Users = () => {
   const [notificationApi, contextHolder] = notification.useNotification();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isModalCreateOpen, setIsModalCreateOpen] = useState(false);
+  const [isModalEditOpen, setIsModalEditOpen] = useState(false);
+  const [isModalDeleteOpen, setIdModalDeleteOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User>();
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
@@ -40,7 +42,7 @@ const Users = () => {
           });
         });
       setUserToDelete(null);
-      setIsDeleteModalOpen(false);
+      setIdModalDeleteOpen(false);
     }
   };
 
@@ -66,7 +68,7 @@ const Users = () => {
             icon={<EditFilled />}
             onClick={() => {
               setUserToEdit(user);
-              setIsModalOpen(true);
+              setIsModalCreateOpen(true);
             }}
           />
           <Button
@@ -75,7 +77,7 @@ const Users = () => {
             icon={<DeleteFilled />}
             onClick={() => {
               setUserToDelete(user);
-              setIsDeleteModalOpen(true);
+              setIdModalDeleteOpen(true);
             }}
           />
         </>
@@ -113,10 +115,7 @@ const Users = () => {
 
       <Button
         type='primary'
-        onClick={() => {
-          setUserToEdit(undefined);
-          setIsModalOpen(true);
-        }}
+        onClick={() => setIsModalCreateOpen(true)}
         icon={<UserAddOutlined />}
       >
         Novo Usuário
@@ -148,20 +147,29 @@ const Users = () => {
       />
 
       <UserRegistrationModal
-        initialValues={userToEdit}
-        isOpen={isModalOpen}
+        isOpen={isModalCreateOpen}
         onSubmit={() => {
           loadUsers();
-          setIsModalOpen(false);
+          setIsModalCreateOpen(false);
         }}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => setIsModalCreateOpen(false)}
+      />
+
+      <UserEditModal
+        initialValues={userToEdit}
+        isOpen={isModalEditOpen}
+        onSubmit={() => {
+          loadUsers();
+          setIsModalEditOpen(false);
+        }}
+        onClose={() => setIsModalEditOpen(false)}
       />
 
       <Modal
         title='Confirmar Exclusão'
-        open={isDeleteModalOpen}
+        open={isModalDeleteOpen}
         onOk={handleDeleteUser}
-        onCancel={() => setIsDeleteModalOpen(false)}
+        onCancel={() => setIdModalDeleteOpen(false)}
         okText='Excluir'
         cancelText='Cancelar'
       >

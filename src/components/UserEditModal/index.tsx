@@ -11,19 +11,19 @@ import { UserService } from "../../services/users";
 
 type Props = {
   isOpen: boolean;
+  initialValues?: User;
   onSubmit: () => void;
   onClose?: () => void;
 };
 
-const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
+const UserEditModal = ({ isOpen, initialValues, onSubmit, onClose }: Props) => {
   const [notificationApi, contextHolder] = notification.useNotification();
   const {
     handleSubmit,
     control,
     formState: { errors },
     reset,
-    setError,
-  } = useForm<User>();
+  } = useForm<User>({ values: initialValues });
 
   const openErrorNotification = useCallback(
     (data: FieldErrors<User>) =>
@@ -44,28 +44,18 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
   const openSuccessNotification = useCallback(
     () =>
       notificationApi.success({
-        message: `Usuário cadastrado com sucesso!`,
+        message: "Usuário atualizado com sucesso!",
         showProgress: true,
       }),
     [notificationApi]
   );
 
   const _onSubmit: SubmitHandler<User> = async (formData) => {
-    if (formData.password !== formData.confirmPassword) {
-      setError("confirmPassword", {
-        type: "manual",
-        message: "As senhas não são iguais",
-      });
-      openErrorNotification({
-        ...errors,
-        confirmPassword: { type: "value", message: "As senhas não são iguais" },
-      });
-      return;
-    }
+    if (!initialValues) return;
 
-    const newUser = { ...formData, id: crypto.randomUUID() };
+    const userToEdit = { ...formData, id: initialValues.id };
 
-    UserService.createUser(newUser)
+    UserService.updateUser(userToEdit)
       .then(() => {
         openSuccessNotification();
         onSubmit();
@@ -73,7 +63,7 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
       })
       .catch((error) => {
         notificationApi.error({
-          message: "Erro ao cadastrar usuário",
+          message: "Erro ao salvar o usuário",
           description: error as unknown as string,
           showProgress: true,
         });
@@ -82,7 +72,7 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
 
   return (
     <Modal
-      title={"Cadastrar Novo Usuário"}
+      title={"Editar usuário"}
       open={isOpen}
       onCancel={onClose}
       footer={null}
@@ -126,44 +116,6 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
             />
           </Form.Item>
 
-          <Form.Item
-            label='Senha'
-            validateStatus={errors.password ? "error" : ""}
-            help={
-              errors.password
-                ? errors.password.message
-                : "Mínimo de 6 caracteres"
-            }
-          >
-            <Controller
-              name='password'
-              control={control}
-              rules={{
-                required: "Senha é obrigatória",
-                minLength: {
-                  value: 6,
-                  message: "A senha deve ter no mínimo 6 caracteres",
-                },
-              }}
-              render={({ field }) => <Input.Password size='large' {...field} />}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label='Confirmar Senha'
-            validateStatus={errors.confirmPassword ? "error" : ""}
-            help={errors.confirmPassword && errors.confirmPassword.message}
-          >
-            <Controller
-              name='confirmPassword'
-              control={control}
-              rules={{
-                required: "Confirmação de senha é obrigatória",
-              }}
-              render={({ field }) => <Input.Password size='large' {...field} />}
-            />
-          </Form.Item>
-
           <Form.Item>
             <Button
               type='primary'
@@ -172,7 +124,7 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
               block
               style={{ marginTop: 16 }}
             >
-              Cadastrar
+              Salvar
             </Button>
           </Form.Item>
         </Form>
@@ -181,4 +133,4 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
   );
 };
 
-export default UserRegistrationModal;
+export default UserEditModal;
