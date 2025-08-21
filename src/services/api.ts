@@ -1,25 +1,40 @@
-import axios from "axios";
-import type { User } from "../types";
+import axios, { AxiosError } from "axios";
+import session from "../stores/session";
 
-export const createUser = (user: User) => {
-  const response = axios.post(import.meta.env.VITE_API_URL + "users", user);
-  return response;
+export type RespAPI<Success> = {
+  status: number;
+  data: Success | AxiosError;
 };
 
-export const updateUser = (user: User) => {
-  const response = axios.put(
-    import.meta.env.VITE_API_URL + "users/" + user.id,
-    user
-  );
-  return response;
-};
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: {},
+});
 
-export const deleteUser = (id: string) => {
-  const response = axios.delete(import.meta.env.VITE_API_URL + "users/" + id);
-  return response;
-};
+api.interceptors.request.use((request) => {
+  const token = session.get();
+  if (token !== null) {
+    request.headers.Authorization = `Bearer ${token}`;
+  }
 
-export const getUsers = () => {
-  const response = axios.get(import.meta.env.VITE_API_URL + "users");
-  return response;
-};
+  return request;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError): RespAPI<AxiosError> => {
+    // logout user when he's not authorized
+    if (error.response?.status === 401) {
+      session.delete();
+    }
+
+    return {
+      status: error.response?.status || 500,
+      data: (error.response?.data as AxiosError) || {
+        message: error.message,
+      },
+    };
+  }
+);
+
+export default api;

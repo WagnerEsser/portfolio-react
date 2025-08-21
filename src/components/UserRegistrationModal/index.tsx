@@ -7,7 +7,7 @@ import {
 import { Form, Input, Button, notification, List, Modal } from "antd";
 import { useCallback } from "react";
 import type { User } from "../../types";
-import { createUser, updateUser } from "../../services/api";
+import { UserService } from "../../services/users";
 
 type Props = {
   isOpen: boolean;
@@ -59,8 +59,8 @@ const UserRegistrationModal = ({
     [notificationApi, isEdit]
   );
 
-  const _onSubmit: SubmitHandler<User> = (data) => {
-    if (!isEdit && data.password !== data.confirmPassword) {
+  const _onSubmit: SubmitHandler<User> = async (formData) => {
+    if (!isEdit && formData.password !== formData.confirmPassword) {
       setError("confirmPassword", {
         type: "manual",
         message: "As senhas não são iguais",
@@ -73,37 +73,37 @@ const UserRegistrationModal = ({
     }
 
     if (isEdit) {
-      const userToEdit = { ...data, id: initialValues.id };
+      const userToEdit = { ...formData, id: initialValues.id };
 
-      updateUser(userToEdit).then((response) => {
-        if (response.status !== 200) {
+      UserService.updateUser(userToEdit)
+        .then(() => {
+          openFormSuccessNotification();
+          onSubmit();
+          reset();
+        })
+        .catch((error) => {
           notificationApi.error({
             message: "Erro ao salvar o usuário",
-            description: response.data,
+            description: error as unknown as string,
             showProgress: true,
           });
-          return;
-        }
-        openFormSuccessNotification();
-        onSubmit();
-        reset();
-      });
+        });
     } else {
-      const newUser = { ...data, id: crypto.randomUUID() };
+      const newUser = { ...formData, id: crypto.randomUUID() };
 
-      createUser(newUser).then((response) => {
-        if (response.status !== 201) {
+      UserService.createUser(newUser)
+        .then(() => {
+          openFormSuccessNotification();
+          onSubmit();
+          reset();
+        })
+        .catch((error) => {
           notificationApi.error({
             message: "Erro ao cadastrar usuário",
-            description: response.data,
+            description: error as unknown as string,
             showProgress: true,
           });
-          return;
-        }
-        openFormSuccessNotification();
-        onSubmit();
-        reset();
-      });
+        });
     }
   };
 
