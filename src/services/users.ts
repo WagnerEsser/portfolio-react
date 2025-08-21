@@ -1,4 +1,5 @@
-import type { User } from '../types';
+import type { User } from '@types';
+
 import api, { type RespAPI } from './api';
 
 export const UserService = {

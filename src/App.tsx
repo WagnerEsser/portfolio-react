@@ -16,10 +16,9 @@ import {
   UserOutlined,
   WhatsAppOutlined,
 } from '@ant-design/icons';
-
-import HeaderPortfolio from './components/HeaderPortfolio';
-import Home from './pages/Home';
-import Users from './pages/Users';
+import HeaderPortfolio from '@components/HeaderPortfolio';
+import Home from '@pages/Home';
+import Users from '@pages/Users';
 
 import './App.css';
 

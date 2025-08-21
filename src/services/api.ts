@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 
-import session from '../stores/session';
+import session from '@stores/session';
 
 export type RespAPI<Success> = {
   status: number;

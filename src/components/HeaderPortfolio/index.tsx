@@ -1,8 +1,7 @@
 import { Divider, Image, Typography } from 'antd';
 
 import { CodeOutlined } from '@ant-design/icons';
-
-import wagnerPhoto from '../../assets/logo.png';
+import wagnerPhoto from '@assets/logo.png';
 
 const { Title, Text } = Typography;
 

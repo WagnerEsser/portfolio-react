@@ -4,11 +4,10 @@ import { Button, Modal, notification, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
 import { DeleteFilled, EditFilled, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
-
-import UserEditModal from '../components/UserEditModal';
-import UserRegistrationModal from '../components/UserRegistrationModal';
-import { UserService } from '../services/users';
-import type { User } from '../types';
+import UserEditModal from '@components/UserEditModal';
+import UserRegistrationModal from '@components/UserRegistrationModal';
+import { UserService } from '@services/users';
+import type { User } from '@types';
 
 const { Title } = Typography;
 

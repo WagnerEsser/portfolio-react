@@ -3,8 +3,8 @@ import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react
 
 import { Button, Form, Input, List, Modal, notification } from 'antd';
 
-import { UserService } from '../../services/users';
-import type { User } from '../../types';
+import { UserService } from '@services/users';
+import type { User } from '@types';
 
 type Props = {
   isOpen: boolean;
