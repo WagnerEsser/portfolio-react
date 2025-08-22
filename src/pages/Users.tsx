@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button, Modal, notification, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -7,7 +7,7 @@ import type { AxiosError } from 'axios';
 import { DeleteFilled, EditFilled, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
 import UserEditModal from '@components/UserEditModal';
 import UserRegistrationModal from '@components/UserRegistrationModal';
-import { UserService } from '@services/users';
+import { UserService, useUsers } from '@services/users';
 import type { User } from '@types';
 
 const { Title } = Typography;
@@ -15,33 +15,27 @@ const { Title } = Typography;
 const Users = () => {
   const [notificationApi, contextHolder] = notification.useNotification();
   const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalCreateOpen, setIsModalCreateOpen] = useState(false);
   const [isModalEditOpen, setIsModalEditOpen] = useState(false);
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
   const [userToEdit, setUserToEdit] = useState<User>();
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const { data, refetch, isFetching } = useUsers();
 
-  const loadUsers = useCallback(() => {
-    setIsLoading(true);
-    UserService.getUsers()
-      .then(({ data, status }) => {
-        if (status !== 200) {
-          notificationApi.error({
-            message: 'Erro ao listar usuários!',
-            description: `${status}: ${(data as AxiosError).message}`,
-            showProgress: true,
-          });
-          return;
-        }
-        const users = (data || []) as User[];
-        setUsers(users);
-      })
-      .finally(() => {
-        setIsLoading(false);
+  useEffect(() => {
+    if (data?.status === 200) {
+      setUsers(data.data as User[]);
+      return;
+    }
+    if (data?.status) {
+      notificationApi.error({
+        message: 'Erro ao carregar usuários',
+        description: `${data.status}: ${(data.data as AxiosError).message}`,
+        showProgress: true,
       });
-  }, [notificationApi]);
+    }
+  }, [data, notificationApi]);
 
   const handleDeleteUser = () => {
     if (userToDelete) {
@@ -60,7 +54,7 @@ const Users = () => {
             message: 'Usuário excluído com sucesso!',
             showProgress: true,
           });
-          loadUsers();
+          refetch();
         })
         .finally(() => {
           setIsDeleting(false);
@@ -109,10 +103,6 @@ const Users = () => {
     },
   ];
 
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
-
   return (
     <div style={{ padding: '20px' }}>
       {contextHolder}
@@ -131,12 +121,12 @@ const Users = () => {
         }}
       >
         Lista de Usuários
-        <ReloadOutlined spin={isLoading} style={{ cursor: 'pointer' }} onClick={loadUsers} />
+        <ReloadOutlined spin={isFetching} style={{ cursor: 'pointer' }} onClick={() => refetch()} />
       </Title>
 
       <Table
         dataSource={users}
-        loading={isLoading}
+        loading={isFetching}
         columns={columns}
         rowKey={user => user.email}
         style={{ marginTop: 20 }}
@@ -146,7 +136,7 @@ const Users = () => {
         isOpen={isModalCreateOpen}
         onClose={() => setIsModalCreateOpen(false)}
         onSubmit={() => {
-          loadUsers();
+          refetch();
           setIsModalCreateOpen(false);
         }}
       />
@@ -156,7 +146,7 @@ const Users = () => {
         isOpen={isModalEditOpen}
         onClose={() => setIsModalEditOpen(false)}
         onSubmit={() => {
-          loadUsers();
+          refetch();
           setIsModalEditOpen(false);
         }}
       />
