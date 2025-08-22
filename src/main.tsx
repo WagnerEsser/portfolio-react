@@ -7,6 +7,7 @@ import { ConfigProvider, theme } from 'antd';
 import ptBR from 'antd/locale/pt_BR';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import App from './App';
 
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')!).render(
       >
         <App />
       </ConfigProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </StrictMode>
 );
