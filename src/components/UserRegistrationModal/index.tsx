@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { Button, Form, Input, List, Modal, notification } from 'antd';
+import type { AxiosError } from 'axios';
 
 import { UserService } from '@services/users';
 import type { User } from '@types';
@@ -38,15 +39,6 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
     [notificationApi]
   );
 
-  const openSuccessNotification = useCallback(
-    () =>
-      notificationApi.success({
-        message: `Usuário cadastrado com sucesso!`,
-        showProgress: true,
-      }),
-    [notificationApi]
-  );
-
   const _onSubmit: SubmitHandler<User> = async formData => {
     if (formData.password !== formData.confirmPassword) {
       setError('confirmPassword', {
@@ -62,19 +54,22 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
 
     const newUser = { ...formData, id: crypto.randomUUID() };
 
-    UserService.createUser(newUser)
-      .then(() => {
-        openSuccessNotification();
-        onSubmit();
-        reset();
-      })
-      .catch(error => {
+    UserService.createUser(newUser).then(({ data, status }) => {
+      if (status !== 200) {
         notificationApi.error({
           message: 'Erro ao cadastrar usuário',
-          description: error as unknown as string,
+          description: `${status}: ${(data as AxiosError).message}`,
           showProgress: true,
         });
+        return;
+      }
+      notificationApi.success({
+        message: `Usuário cadastrado com sucesso!`,
+        showProgress: true,
       });
+      onSubmit();
+      reset();
+    });
   };
 
   return (

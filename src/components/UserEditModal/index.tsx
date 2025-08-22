@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { Button, Form, Input, List, Modal, notification } from 'antd';
+import type { AxiosError } from 'axios';
 
 import { UserService } from '@services/users';
 import type { User } from '@types';
@@ -38,33 +39,27 @@ const UserEditModal = ({ isOpen, initialValues, onSubmit, onClose }: Props) => {
     [notificationApi]
   );
 
-  const openSuccessNotification = useCallback(
-    () =>
-      notificationApi.success({
-        message: 'Usuário atualizado com sucesso!',
-        showProgress: true,
-      }),
-    [notificationApi]
-  );
-
   const _onSubmit: SubmitHandler<User> = async formData => {
     if (!initialValues) return;
 
     const userToEdit = { ...formData, id: initialValues.id };
 
-    UserService.updateUser(userToEdit)
-      .then(() => {
-        openSuccessNotification();
-        onSubmit();
-        reset();
-      })
-      .catch(error => {
+    UserService.updateUser(userToEdit).then(({ data, status }) => {
+      if (status !== 200) {
         notificationApi.error({
           message: 'Erro ao salvar o usuário',
-          description: error as unknown as string,
+          description: `${status}: ${(data as AxiosError).message}`,
           showProgress: true,
         });
+        return;
+      }
+      notificationApi.success({
+        message: 'Usuário atualizado com sucesso!',
+        showProgress: true,
       });
+      onSubmit();
+      reset();
+    });
   };
 
   return (

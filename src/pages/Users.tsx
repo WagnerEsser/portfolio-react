@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { Button, Modal, notification, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import type { AxiosError } from 'axios';
 
 import { DeleteFilled, EditFilled, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
 import UserEditModal from '@components/UserEditModal';
@@ -24,17 +25,17 @@ const Users = () => {
   const loadUsers = useCallback(() => {
     setIsLoading(true);
     UserService.getUsers()
-      .then(response => {
-        const users = (response.data || []) as User[];
+      .then(({ data, status }) => {
+        if (status !== 200) {
+          notificationApi.error({
+            message: 'Erro ao listar usuários!',
+            description: `${status}: ${(data as AxiosError).message}`,
+            showProgress: true,
+          });
+          return;
+        }
+        const users = (data || []) as User[];
         setUsers(users);
-      })
-      .catch(error => {
-        notificationApi.error({
-          message: 'Erro ao atualizar a lista de usuários!',
-          description: error,
-          showProgress: true,
-        });
-        return;
       })
       .finally(() => {
         setIsLoading(false);
@@ -43,21 +44,21 @@ const Users = () => {
 
   const handleDeleteUser = () => {
     if (userToDelete) {
-      UserService.deleteUser(userToDelete.id)
-        .then(() => {
-          notificationApi.success({
-            message: 'Usuário excluído com sucesso!',
-            showProgress: true,
-          });
-          loadUsers();
-        })
-        .catch(error => {
+      UserService.deleteUser(userToDelete.id).then(({ data, status }) => {
+        if (status !== 200) {
           notificationApi.error({
             message: 'Erro ao excluir o usuário',
-            description: error,
+            description: `${status}: ${(data as AxiosError).message}`,
             showProgress: true,
           });
+          return;
+        }
+        notificationApi.success({
+          message: 'Usuário excluído com sucesso!',
+          showProgress: true,
         });
+        loadUsers();
+      });
       setUserToDelete(null);
       setIsModalDeleteOpen(false);
     }
