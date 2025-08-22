@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { Button, Form, Input, List, Modal, notification } from 'antd';
 import type { AxiosError } from 'axios';
 
-import { UserService } from '@services/users';
+import { useCreateUser } from '@hooks/mutations/useCreateUser';
 import type { User } from '@types';
 
 type Props = {
@@ -15,7 +15,6 @@ type Props = {
 
 const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
   const [notificationApi, contextHolder] = notification.useNotification();
-  const [isLoading, setIsLoading] = useState(false);
   const {
     handleSubmit,
     control,
@@ -23,6 +22,7 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
     reset,
     setError,
   } = useForm<User>();
+  const { mutateAsync: createUser, isPending } = useCreateUser();
 
   const openErrorNotification = useCallback(
     (data: FieldErrors<User>) =>
@@ -53,27 +53,24 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
       return;
     }
 
-    setIsLoading(true);
     const newUser = { ...formData, id: crypto.randomUUID() };
 
-    UserService.createUser(newUser)
-      .then(({ data, status }) => {
-        if (status !== 201) {
-          notificationApi.error({
-            message: 'Erro ao cadastrar usuário',
-            description: `${status}: ${(data as AxiosError).message}`,
-            showProgress: true,
-          });
-          return;
-        }
-        notificationApi.success({
-          message: `Usuário cadastrado com sucesso!`,
+    createUser(newUser).then(({ data, status }) => {
+      if (status !== 201) {
+        notificationApi.error({
+          message: 'Erro ao cadastrar usuário',
+          description: `${status}: ${(data as AxiosError).message}`,
           showProgress: true,
         });
-        onSubmit();
-        reset();
-      })
-      .finally(() => setIsLoading(false));
+        return;
+      }
+      notificationApi.success({
+        message: `Usuário cadastrado com sucesso!`,
+        showProgress: true,
+      });
+      onSubmit();
+      reset();
+    });
   };
 
   return (
@@ -145,7 +142,7 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
           </Form.Item>
 
           <Form.Item>
-            <Button block type="primary" htmlType="submit" size="large" style={{ marginTop: 16 }} loading={isLoading}>
+            <Button block type="primary" htmlType="submit" size="large" style={{ marginTop: 16 }} loading={isPending}>
               Cadastrar
             </Button>
           </Form.Item>

@@ -1,8 +1,6 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { User } from '@types';
 
 import api, { type RespAPI } from './api';
-import { QueryKeys } from './keys';
 
 export const UserService = {
   createUser: async (user: User): Promise<RespAPI<User>> => {
@@ -20,13 +18,4 @@ export const UserService = {
   getUsers: async (): Promise<RespAPI<User[]>> => {
     return api.get(import.meta.env.VITE_API_URL + 'users');
   },
-};
-
-export const useUsers = () => {
-  return useQuery({
-    queryKey: [QueryKeys.Users],
-    queryFn: () => UserService.getUsers(),
-    staleTime: 5000, // 5 seconds
-    placeholderData: keepPreviousData,
-  });
 };

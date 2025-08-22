@@ -7,7 +7,8 @@ import type { AxiosError } from 'axios';
 import { DeleteFilled, EditFilled, ReloadOutlined, UserAddOutlined } from '@ant-design/icons';
 import UserEditModal from '@components/UserEditModal';
 import UserRegistrationModal from '@components/UserRegistrationModal';
-import { UserService, useUsers } from '@services/users';
+import { useUsers } from '@hooks/queries/useUsers';
+import { UserService } from '@services/users';
 import type { User } from '@types';
 
 const { Title } = Typography;
