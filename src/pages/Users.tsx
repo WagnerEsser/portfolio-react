@@ -16,6 +16,7 @@ const Users = () => {
   const [notificationApi, contextHolder] = notification.useNotification();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isModalCreateOpen, setIsModalCreateOpen] = useState(false);
   const [isModalEditOpen, setIsModalEditOpen] = useState(false);
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
@@ -44,23 +45,28 @@ const Users = () => {
 
   const handleDeleteUser = () => {
     if (userToDelete) {
-      UserService.deleteUser(userToDelete.id).then(({ data, status }) => {
-        if (status !== 200) {
-          notificationApi.error({
-            message: 'Erro ao excluir o usuário',
-            description: `${status}: ${(data as AxiosError).message}`,
+      setIsDeleting(true);
+      UserService.deleteUser(userToDelete.id)
+        .then(({ data, status }) => {
+          if (status !== 200) {
+            notificationApi.error({
+              message: 'Erro ao excluir o usuário',
+              description: `${status}: ${(data as AxiosError).message}`,
+              showProgress: true,
+            });
+            return;
+          }
+          notificationApi.success({
+            message: 'Usuário excluído com sucesso!',
             showProgress: true,
           });
-          return;
-        }
-        notificationApi.success({
-          message: 'Usuário excluído com sucesso!',
-          showProgress: true,
+          loadUsers();
+        })
+        .finally(() => {
+          setIsDeleting(false);
+          setUserToDelete(null);
+          setIsModalDeleteOpen(false);
         });
-        loadUsers();
-      });
-      setUserToDelete(null);
-      setIsModalDeleteOpen(false);
     }
   };
 
@@ -160,6 +166,7 @@ const Users = () => {
         open={isModalDeleteOpen}
         okText="Excluir"
         cancelText="Cancelar"
+        confirmLoading={isDeleting}
         onOk={handleDeleteUser}
         onCancel={() => setIsModalDeleteOpen(false)}
       >

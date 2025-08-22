@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { Button, Form, Input, List, Modal, notification } from 'antd';
@@ -16,6 +16,7 @@ type Props = {
 
 const UserEditModal = ({ isOpen, initialValues, onSubmit, onClose }: Props) => {
   const [notificationApi, contextHolder] = notification.useNotification();
+  const [isLoading, setIsLoading] = useState(false);
   const {
     handleSubmit,
     control,
@@ -42,24 +43,27 @@ const UserEditModal = ({ isOpen, initialValues, onSubmit, onClose }: Props) => {
   const _onSubmit: SubmitHandler<User> = async formData => {
     if (!initialValues) return;
 
+    setIsLoading(true);
     const userToEdit = { ...formData, id: initialValues.id };
 
-    UserService.updateUser(userToEdit).then(({ data, status }) => {
-      if (status !== 200) {
-        notificationApi.error({
-          message: 'Erro ao salvar o usuário',
-          description: `${status}: ${(data as AxiosError).message}`,
+    UserService.updateUser(userToEdit)
+      .then(({ data, status }) => {
+        if (status !== 200) {
+          notificationApi.error({
+            message: 'Erro ao salvar o usuário',
+            description: `${status}: ${(data as AxiosError).message}`,
+            showProgress: true,
+          });
+          return;
+        }
+        notificationApi.success({
+          message: 'Usuário atualizado com sucesso!',
           showProgress: true,
         });
-        return;
-      }
-      notificationApi.success({
-        message: 'Usuário atualizado com sucesso!',
-        showProgress: true,
-      });
-      onSubmit();
-      reset();
-    });
+        onSubmit();
+        reset();
+      })
+      .finally(() => setIsLoading(false));
   };
 
   return (
@@ -97,7 +101,7 @@ const UserEditModal = ({ isOpen, initialValues, onSubmit, onClose }: Props) => {
           </Form.Item>
 
           <Form.Item>
-            <Button block type="primary" htmlType="submit" size="large" style={{ marginTop: 16 }}>
+            <Button block type="primary" htmlType="submit" size="large" style={{ marginTop: 16 }} loading={isLoading}>
               Salvar
             </Button>
           </Form.Item>

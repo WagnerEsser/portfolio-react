@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { Button, Form, Input, List, Modal, notification } from 'antd';
@@ -15,6 +15,7 @@ type Props = {
 
 const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
   const [notificationApi, contextHolder] = notification.useNotification();
+  const [isLoading, setIsLoading] = useState(false);
   const {
     handleSubmit,
     control,
@@ -52,24 +53,27 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
       return;
     }
 
+    setIsLoading(true);
     const newUser = { ...formData, id: crypto.randomUUID() };
 
-    UserService.createUser(newUser).then(({ data, status }) => {
-      if (status !== 200) {
-        notificationApi.error({
-          message: 'Erro ao cadastrar usuário',
-          description: `${status}: ${(data as AxiosError).message}`,
+    UserService.createUser(newUser)
+      .then(({ data, status }) => {
+        if (status !== 201) {
+          notificationApi.error({
+            message: 'Erro ao cadastrar usuário',
+            description: `${status}: ${(data as AxiosError).message}`,
+            showProgress: true,
+          });
+          return;
+        }
+        notificationApi.success({
+          message: `Usuário cadastrado com sucesso!`,
           showProgress: true,
         });
-        return;
-      }
-      notificationApi.success({
-        message: `Usuário cadastrado com sucesso!`,
-        showProgress: true,
-      });
-      onSubmit();
-      reset();
-    });
+        onSubmit();
+        reset();
+      })
+      .finally(() => setIsLoading(false));
   };
 
   return (
@@ -141,7 +145,7 @@ const UserRegistrationModal = ({ isOpen, onSubmit, onClose }: Props) => {
           </Form.Item>
 
           <Form.Item>
-            <Button block type="primary" htmlType="submit" size="large" style={{ marginTop: 16 }}>
+            <Button block type="primary" htmlType="submit" size="large" style={{ marginTop: 16 }} loading={isLoading}>
               Cadastrar
             </Button>
           </Form.Item>
